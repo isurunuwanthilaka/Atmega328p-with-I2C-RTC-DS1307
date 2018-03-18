@@ -4,11 +4,11 @@ Author : Isuru Nuwanthilaka
 
 Date   : 2018.03.18
 
-####Task
+#### Task
 
 Programming Atmega328P microcontroller in C programming language to controlling the household water pump.
 
-####Key operations
+#### Key operations
 
 1. Getting three sensor inputs to sense water levels.
 2. Displaying operation menus on LCD display and controlling navigation across the menus.
