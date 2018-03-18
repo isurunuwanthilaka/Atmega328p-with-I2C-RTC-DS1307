@@ -1,7 +1,6 @@
 # Atmega328p-with-I2C-RTC-DS1307
 
 Author : Isuru Nuwanthilaka
---
 
 Date   : 2018.03.18
 
@@ -26,3 +25,6 @@ This repository contains below files
 * watercontrol.hex
 * Makefile
 
+Contact
+
+isurunuwanthilaka@gmail.com
