@@ -8,23 +8,21 @@
 #include "ButtonPress.h"
 #include "i2c.h"
 
-#define rs PINB0    
-#define en PINB1    
+#define D4 eS_PORTD4
+#define D5 eS_PORTD5
+#define D6 eS_PORTD6
+#define D7 eS_PORTD7
+#define RS eS_PORTB0
+#define EN eS_PORTB1
+
 #define Low 2
 #define medium 3
 #define high 4
 
-unsigned int s1[]={10,21,17,17,17,10,4,0};
-unsigned int s2[]={0,10,0,4,4,17,10,4};
-unsigned int s3[]={0,10,0,4,4,0,14,17};
-unsigned int s4[]={1,3,5,9,9,11,27,24};
-unsigned int s5[]={0,17,10,17,4,0,14,17};
-unsigned int s6[]={0,10,0,4,4,0,31,0};
-unsigned int s7[]={10,0,4,0,14,17,17,14};
-unsigned int s8[]={0,10,0,31,17,14,0,0};
-
 int bcd2decimal(uint8_t);
 int rtc_read(uint8_t,int);
+
+char t ;
 
 int bcd2decimal(uint8_t t){
 	//this function gives 4-bit binary coded decimal to decimal 
@@ -79,17 +77,17 @@ int main()
 	int hour = 13;
 	int minute = 14;
 	int percentage = 30;
-	DDRB = 0x03;
+	DDRB = 0x23;
 	DDRD = 0xF0;
-	DDRC = 0b0000001;
-	PORTC = 0b0001110; 
-	PORTB &= ~(1<<PINB2 | 1<<PINB3 | 1<<PINB4);
-	PORTB |=1<<PINB7;
-	_delay_ms(400);
-	start();
-	clearScreen();
-	Send_A_String("WELCOME!!!");
-	_delay_ms(100);
+	DDRC = 0x00;
+	PORTC = 0x0F; 
+	
+	_delay_ms(1000);
+	Lcd4_Init();
+	Lcd4_Clear();
+	Lcd4_Set_Cursor(1,0);
+	Lcd4_Write_String("WELCOME!!!");
+	_delay_ms(4000);
 	
 	//initializing i2c communication
 	i2c_init();
@@ -97,112 +95,137 @@ int main()
 	
 	while(1)
 	{
-		clearScreen();
-		cut("1:Auto  2:Manual3:SemiAuto");
+		Lcd4_Clear();
+		Lcd4_Set_Cursor(1,0);
+		Lcd4_Write_String("1:Auto  2:Manual");
+		Lcd4_Set_Cursor(2,0);
+		Lcd4_Write_String("3:SemiAuto");
 		while (1)
 		{
-			if (ButtonPressed(0,PINC,1,100))
+			if (ButtonPressed(0,PINC,0,100))
 			//////////////Auto Menu//////////
 			{
-				clearScreen();
-				Send_A_String("Refill starts at");
-				clearScreen();
-				Send_An_Integer(hour);
-				Send_A_String(":");
-				Send_An_Integer(minute);
-				_delay_ms(10);
-				clearScreen();
-				Send_A_String("Refill starts at");
-				clearScreen();
-				Send_An_Integer(percentage);
-				Send_A_String(" percentage");
+				Lcd4_Clear();
+				Lcd4_Set_Cursor(1,0);
+				Lcd4_Write_String("Refill starts at");
+				Lcd4_Set_Cursor(2,0);
+				Lcd4_Write_Integer(hour);
+				Lcd4_Set_Cursor(2,2);
+				Lcd4_Write_String(":");
+				Lcd4_Set_Cursor(2,3);
+				Lcd4_Write_Integer(minute);
+				_delay_ms(1000);
+				Lcd4_Clear();
+				Lcd4_Set_Cursor(1,0);
+				Lcd4_Write_String("Refill starts at");
+				Lcd4_Set_Cursor(2,0);
+				Lcd4_Write_Integer(percentage);
+				Lcd4_Set_Cursor(2,2);
+				Lcd4_Write_String(" percentage");
+				_delay_ms(1000);
 				//check rtc and starts process according to the defined time or percentage
 				tempHour = rtc_read(0x02,1);
 				tempMinute = rtc_read(0x01,0);//can be removed if needed
 				if ((getWaterLevel()==0) | ((tempHour == hour) & (tempMinute == minute)))
 				{
-					PORTC |= 1<<PINC0;
+					PORTB |= 1<<PINB5;
 					while (1)
 					{
 						showWaterLevel();
 						if (getWaterLevel()==3)
 						{
-							PORTC &= ~(1<<PINC0);
+							PORTB &= ~(1<<PINB5);
 							break;
 						}
 					}
 				}
 				//
 				flag4=0;
-				clearScreen();
-				cut("1:Settings      4:back");
+				Lcd4_Clear();
+				Lcd4_Set_Cursor(1,0);
+				Lcd4_Write_String("1:Settings      4:back");
+				_delay_ms(1000);
 				while (1)
 				{
 					flag4++;
-					if (flag4>20000)
+					if (flag4>60000)
 					{
 						flag4=0;
-						clearScreen();
-						Send_A_String("Refill starts at");
-						clearScreen();
-						Send_An_Integer(hour);
-						Send_A_String(":");
-						Send_An_Integer(minute);
-						_delay_ms(10);
-						clearScreen();
-						Send_A_String("Refill starts at");
-						clearScreen();
-						Send_An_Integer(percentage);
-						Send_A_String(" percentage");
-						clearScreen();
-						cut("1:Settings      4:back");
+						Lcd4_Clear();
+						Lcd4_Set_Cursor(1,0);
+						Lcd4_Write_String("Refill starts at");
+						Lcd4_Set_Cursor(2,0);
+						Lcd4_Write_Integer(hour);
+						Lcd4_Set_Cursor(2,2);
+						Lcd4_Write_String(":");
+						Lcd4_Set_Cursor(2,3);
+						Lcd4_Write_Integer(minute);
+						_delay_ms(1000);
+						Lcd4_Clear();
+						Lcd4_Set_Cursor(1,0);
+						Lcd4_Write_String("Refill starts at");
+						Lcd4_Set_Cursor(2,0);
+						Lcd4_Write_Integer(percentage);
+						Lcd4_Set_Cursor(2,2);
+						Lcd4_Write_String(" percentage");
+						_delay_ms(1000);
+						Lcd4_Write_String("1:Settings 4:back");
 						//check rtc and starts process according to the defined time or percentage
 						tempHour = rtc_read(0x02,1);
 						tempMinute = rtc_read(0x01,0);//can be removed if needed
 						if ((getWaterLevel()==0) | ((tempHour == hour) & (tempMinute == minute)))
 						{
-							PORTC |= 1<<PINC0;
+							PORTB |= 1<<PINB5;
 							while (1)
 							{
 								showWaterLevel();
 								if (getWaterLevel()==3)
 								{
-									PORTC &= ~(1<<PINC0);
+									PORTB &= ~(1<<PINB5);
 									break;
 								}
 							}
 						}
 					}
-					if (ButtonPressed(0,PINC,1,100))
+					if (ButtonPressed(0,PINC,0,100))
 					{
-						clearScreen();
-						cut("1:Set time 2:refill % 4:back");
+						Lcd4_Clear();
+						Lcd4_Set_Cursor(1,0);
+						Lcd4_Write_String("1:Set time 4:back");
+						Lcd4_Set_Cursor(2,0);
+						Lcd4_Write_String("2:refill %");
 						while(1)
 						{
-							if (ButtonPressed(0,PINC,1,100))
+							if (ButtonPressed(0,PINC,0,100))
 							{
-								clearScreen();
-								cut("1:Change 2:Up   3:Down   4:Back");
-								_delay_ms(10);
+								Lcd4_Clear();
+								Lcd4_Set_Cursor(1,0);
+								Lcd4_Write_String("1:Change 2:Up");
+								Lcd4_Set_Cursor(2,0);
+								Lcd4_Write_String("3:Down   4:Back");
+								_delay_ms(500);
 								flag3 = 0;
 								flag5=0;
 								while (1)
 								{
 									flag5++;
-									if (flag5>490)
+									if (flag5>2000)
 									{
 										flag5 = 0;	
-										clearScreen();
-										Send_An_Integer(hour);
-										Send_A_String(":");
-										Send_An_Integer(minute);
+										Lcd4_Clear();
+										Lcd4_Set_Cursor(1,0);
+										Lcd4_Write_Integer(hour);
+										Lcd4_Set_Cursor(1,2);
+										Lcd4_Write_String(":");
+										Lcd4_Set_Cursor(1,3);
+										Lcd4_Write_Integer(minute);
 									}										
-									if (ButtonPressed(0,PINC,1,100))								
+									if (ButtonPressed(0,PINC,0,100))								
 									{
 										if (flag3 == 0) flag3 =1;
 										else flag3 = 0;
 									}
-									else if (ButtonPressed(1,PINC,2,100))
+									else if (ButtonPressed(1,PINC,1,100))
 									{
 										if (flag3==0)
 										{
@@ -221,7 +244,7 @@ int main()
 											}
 										}
 									}
-									else if (ButtonPressed(2,PINC,3,100))
+									else if (ButtonPressed(2,PINC,2,100))
 									{
 										if (flag3==0)
 										{
@@ -240,68 +263,77 @@ int main()
 											}
 										}
 									}
-									else if (ButtonPressed(3,PINB,7,100))
+									else if (ButtonPressed(3,PINC,3,100))
 									{
-										clearScreen();
-										cut("1:Set time 2:refill % 4:back");
+										Lcd4_Clear();
+										Lcd4_Set_Cursor(1,0);
+										Lcd4_Write_String("1:Set time 4:back");
+										Lcd4_Set_Cursor(2,0);
+										Lcd4_Write_String("2:refill %");
 										break;
 									}
 								}
 							}
-							else if (ButtonPressed(1,PINC,2,100))
+							else if (ButtonPressed(1,PINC,1,100))
 							{
-								clearScreen();
-								cut("1:Change        4:Back");
-								_delay_ms(20);
+								Lcd4_Clear();
+								Lcd4_Write_String("1:Change 4:Back");
+								_delay_ms(500);
 								flag5=0;
 								while (1)
 								{
 									flag5++;
-									if (flag5>490)
+									if (flag5>2000)
 									{
 										flag5=0;
-										clearScreen();
-										Send_A_String(" percentage:");
-										Send_An_Integer(percentage);
+										Lcd4_Clear();
+										Lcd4_Write_String(" percentage:");
+										Lcd4_Write_Integer(percentage);
 									}
 																	
-									if (ButtonPressed(0,PINC,1,100))
+									if (ButtonPressed(0,PINC,0,100))
 									{
 										if (percentage==30)percentage = 60;
 										else percentage = 30;
 									}
-									else if (ButtonPressed(3,PINB,7,100))
+									else if (ButtonPressed(3,PINC,3,100))
 									{
-										clearScreen();
-										cut("1:Set time 2:refill % 4:back");
+										Lcd4_Clear();
+										Lcd4_Set_Cursor(1,0);
+										Lcd4_Write_String("1:Set time 4:back");
+										Lcd4_Set_Cursor(2,0);
+										Lcd4_Write_String("2:refill %");
 										break;
 									}
 								}
 							}
-							else if (ButtonPressed(3,PINB,7,100))
+							else if (ButtonPressed(3,PINC,3,100))
 							{
-								clearScreen();
-								cut("1:Settings      4:back");
+								Lcd4_Clear();
+								Lcd4_Write_String("1:Settings 4:back");
 								break;	
 							}
 						}
 						
 					}
-					else if (ButtonPressed(3,PINB,7,100))
+					else if (ButtonPressed(3,PINC,3,100))
 					{
-						PORTC &= ~1<<PINC0;
-						clearScreen();
-						cut("1:Auto  2:Manual3:SemiAuto");
+						PORTB &= ~1<<PINB5;
+						Lcd4_Clear();
+						Lcd4_Set_Cursor(1,0);
+						Lcd4_Write_String("1:Auto  2:Manual");
+						Lcd4_Set_Cursor(2,0);
+						Lcd4_Write_String("3:SemiAuto");
 						break;
 					}
 				}
 				
 			}
-			else if (ButtonPressed(1,PINC,2,100))
+			else if (ButtonPressed(2,PINC,2,100))
 			{
 				///////////////SemiAuto Menu///////////////////
-				clearScreen();
-				cut("1:ON            4:BACK");
+				Lcd4_Clear();
+				Lcd4_Write_String("1:ON 4:BACK");
 				int flag1=0;
 				while (1)
 				{
@@ -310,58 +342,73 @@ int main()
 					{
 						flag1=0;
 						showWaterLevel();
-						clearScreen();
-						cut("1:ON            4:BACK");
+						Lcd4_Clear();
+						Lcd4_Write_String("1:ON 4:BACK");
 					}
-					if (ButtonPressed(0,PINC,1,100))
+					if (ButtonPressed(0,PINC,0,100))
 					{
-						PORTC |= 1<<PINC0;
-						clearScreen();
-						cut("1:OFF");
+						PORTB |= 1<<PINB5;
+						Lcd4_Clear();
+						Lcd4_Write_String("1:OFF");
 						int flag2=0;
 						while(1){
 							flag2++;
 							if (flag2 >10000)
 							{
 								flag2=0;
-								clearScreen();
-								cut("1:OFF");
+								Lcd4_Clear();
+								Lcd4_Write_String("1:OFF");
 								showWaterLevel();
 							}
 							
-							if (ButtonPressed(0,PINC,1,100))
+							if (ButtonPressed(0,PINC,0,100))
 							{
-								PORTC &= ~1<<PINC0;
+								PORTB &= ~1<<PINB5;
 								showWaterLevel();
 								break;
 							}
 						}						
 					}
-					else if (ButtonPressed(3,PINB,7,100))
+					else if (ButtonPressed(3,PINC,3,100))
 					{
-						clearScreen();
-						cut("1:Auto  2:Manual3:SemiAuto");
+						Lcd4_Clear();
+						Lcd4_Set_Cursor(1,0);
+						Lcd4_Write_String("1:Auto  2:Manual");
+						Lcd4_Set_Cursor(2,0);
+						Lcd4_Write_String("3:SemiAuto");
 						break;
 					}
 				}
 				
 			}
-			else if (ButtonPressed(2,PINC,3,100))
+			else if (ButtonPressed(1,PINC,1,100))
 			{
 				///////////////Manual Menu///////////////////////
-				clearScreen();
+				Lcd4_Clear();
 				int s = getWaterLevel();
 				if (s==1)
 				{
-					cut("W/Level : Low   1: start 4:Back");
+					Lcd4_Clear();
+					Lcd4_Set_Cursor(1,0);
+					Lcd4_Write_String("W/Level : Low");
+					Lcd4_Set_Cursor(2,0);
+					Lcd4_Write_String("1:Start 4:Back");
 				}
 				else if (s==2)
 				{
-					cut("W/Level : Medium1: start 4:Back");
+					Lcd4_Clear();
+					Lcd4_Set_Cursor(1,0);
+					Lcd4_Write_String("W/Level : Medium");
+					Lcd4_Set_Cursor(2,0);
+					Lcd4_Write_String("1:Start 4:Back");
 				}
 				else if (s==3)
 				{
-					cut("W/Level : High  1: start 4:Back");
+					Lcd4_Clear();
+					Lcd4_Set_Cursor(1,0);
+					Lcd4_Write_String("W/Level : High");
+					Lcd4_Set_Cursor(2,0);
+					Lcd4_Write_String("1:Start 4:Back");
 				}
 				int t = 0;
 				while (1)
@@ -370,50 +417,71 @@ int main()
 					if (t==20000)
 					{
 						t=0;
-						clearScreen();
+						Lcd4_Clear();
 						int s = getWaterLevel();
 						if (s==1)
 						{
-							cut("W/Level : Low   1: start 4:Back");
+							Lcd4_Clear();
+							Lcd4_Set_Cursor(1,0);
+							Lcd4_Write_String("W/Level : Low");
+							Lcd4_Set_Cursor(2,0);
+							Lcd4_Write_String("1:Start 4:Back");
 						}
 						else if (s==2)
 						{
-							cut("W/Level : Medium1: start 4:Back");
+							Lcd4_Clear();
+							Lcd4_Set_Cursor(1,0);
+							Lcd4_Write_String("W/Level : Medium");
+							Lcd4_Set_Cursor(2,0);
+							Lcd4_Write_String("1:Start 4:Back");
 						}
 						else if (s==3)
 						{
-							cut("W/Level : High  1: start 4:Back");
+							Lcd4_Clear();
+							Lcd4_Set_Cursor(1,0);
+							Lcd4_Write_String("W/Level : High");
+							Lcd4_Set_Cursor(2,0);
+							Lcd4_Write_String("1:Start 4:Back");
 						}
 					}
-					if (ButtonPressed(0,PINC,1,100))
+					if (ButtonPressed(0,PINC,0,100))
 					{
-						PORTC |= 1<<PINC0;
-						clearScreen();
-						cut("Motor Started");
+						PORTB |= 1<<PINB5;
+						Lcd4_Clear();
+						Lcd4_Write_String("Motor Started");
 						while (1)
 						{
 							if (getWaterLevel()==1)
 							{
-								clearScreen();
-								cut("Motor is ON     W/Level : Low");
+								Lcd4_Clear();
+								Lcd4_Set_Cursor(1,0);
+								Lcd4_Write_String("Motor is ON");
+								Lcd4_Set_Cursor(2,0);
+								Lcd4_Write_String("W/Level : Low");
 							}
 							else if (getWaterLevel()==2)
 							{
-								clearScreen();
-								cut("Motor is ON     W/Level : Medium");
+								Lcd4_Clear();
+								Lcd4_Set_Cursor(1,0);
+								Lcd4_Write_String("Motor is ON");
+								Lcd4_Set_Cursor(2,0);
+								Lcd4_Write_String("W/Level : Medium");
 							}
 							else if (getWaterLevel()==3)
 							{
-								PORTC &= ~1<<PINC0;
+								PORTB &= ~1<<PINB5;
 								break;
 							}
 						}
 					}
 					
-					else if (ButtonPressed(3,PINB,7,100))
+					else if (ButtonPressed(3,PINC,3,100))
 					{
-						clearScreen();
-						cut("1:Auto  2:Manual3:SemiAuto");
+						Lcd4_Clear();
+						Lcd4_Set_Cursor(1,0);
+						Lcd4_Write_String("1:Auto  2:Manual");
+						Lcd4_Set_Cursor(2,0);
+						Lcd4_Write_String("3:SemiAuto");
 						break;
 					}
 				}
@@ -428,11 +496,11 @@ int main()
 
 int getWaterLevel(){
 	////indicate current water level of the tank//////////////////
-	if (bit_is_clear(PINB,2) & bit_is_clear(PINB,4) & bit_is_clear(PINB,3))
+	if (bit_is_clear(PINB,2) & bit_is_clear(PINB,3) & bit_is_clear(PINB,4))
 	{
 		return 0;
 	}
-	else if ( bit_is_clear(PINB,4) & bit_is_clear(PINB,3))
+	else if ( bit_is_clear(PINB,3) & bit_is_clear(PINB,4))
 	{
 		return 1;
 	}
@@ -450,17 +518,20 @@ void showWaterLevel(){
 	///////display current water level of the tank////////////
 	if (getWaterLevel()==1)
 	{
-		clearScreen();
-		cut("W/Level : Low");
+		Lcd4_Clear();
+		Lcd4_Set_Cursor(1,0);
+		Lcd4_Write_String("W/Level : Low");
 	}
 	else if (getWaterLevel()==2)
 	{
-		clearScreen();
-		cut("W/Level : Medium");
+		Lcd4_Clear();
+		Lcd4_Set_Cursor(1,0);
+		Lcd4_Write_String("W/Level : Medium");
 	}
 	else if (getWaterLevel()==3)
 	{
-		clearScreen();
-		cut("W/Level : High");
+		Lcd4_Clear();
+		Lcd4_Set_Cursor(1,0);
+		Lcd4_Write_String("W/Level : High");
 	}
 }
